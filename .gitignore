@@ -1,6 +1,10 @@
 # Gradle Files #
 ################
+gradle/
+.gradle/
 *.gradle
+gradlew
+gradlew.bat
 
 # OS generated files #
 ######################
