@@ -15,4 +15,4 @@ ScrabbleBot
 
 ```
 
-There will be words
+There will be words...
