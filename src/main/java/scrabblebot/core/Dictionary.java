@@ -14,8 +14,6 @@ public enum Dictionary {
 
     INSTANCE;
 
-    private static Dictionary singletonInstance;
-
     private HashSet<String> dictionary = new HashSet<String>();
 
     private Dictionary() {
@@ -42,6 +40,7 @@ public enum Dictionary {
     public boolean validWord(String word){
         return dictionary.contains(word.toUpperCase());
     }
+
 }
 
 

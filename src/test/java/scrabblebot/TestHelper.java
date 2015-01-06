@@ -48,8 +48,10 @@ public class TestHelper {
     @Test public void testParseBoardFixture() {
         String empty = "src/test/resources/board_states/empty.txt";
         String fullOfA = "src/test/resources/board_states/full_of_a.txt";
+        String oneA = "src/test/resources/board_states/one_a.txt";
         Board b = parseBoardFixture(empty);
         assertTrue(b.isEmpty());
+
         b = parseBoardFixture(fullOfA);
         assertFalse(b.isEmpty());
         assertTrue(
@@ -57,6 +59,10 @@ public class TestHelper {
                         .flatMap(r -> r.stream())
                         .allMatch(s -> s.getValue().equals("A"))
                 );
+
+        b = parseBoardFixture(oneA);
+        assertFalse(b.isEmpty());
+        assertTrue(b.getSpace(7,7).getValue().equals("A"));
     }
 
 }

@@ -10,6 +10,9 @@ public class DictionaryTest {
     public void testValidWord(){
         Dictionary d = Dictionary.INSTANCE;
         assert(d.validWord("hi"));
+        assert(d.validWord("howdy"));
+        assert(!d.validWord("hiawatha"));
+        assert(!d.validWord("sparklepants"));
     }
 
 }
