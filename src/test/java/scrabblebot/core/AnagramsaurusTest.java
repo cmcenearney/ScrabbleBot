@@ -25,5 +25,5 @@ public class AnagramsaurusTest extends TestHelper{
         assertEquals(expected, actual);
     }
 
-    
+
 }
