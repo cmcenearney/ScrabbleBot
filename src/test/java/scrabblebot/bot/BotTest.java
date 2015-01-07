@@ -2,15 +2,11 @@ package scrabblebot.bot;
 
 import org.junit.Test;
 import scrabblebot.TestHelper;
-import scrabblebot.combinations.Combinatrix;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
 
 public class BotTest extends TestHelper {
 
@@ -45,8 +41,8 @@ public class BotTest extends TestHelper {
         List<String> tiles = new ArrayList<>(Arrays.asList("H","A","M","S","T","E","R"));
         Bot b = new Bot();
         Set<String> words = b.allPossibleWords(tiles, "A");
-        p(words);
-        assert(236 == words.size());
+        //p(words.size());
+        assert(205 == words.size());
     }
 }
 

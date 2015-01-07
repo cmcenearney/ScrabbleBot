@@ -21,7 +21,7 @@ public enum Anagramsaurus {
     private HashMap<String, List<String>> anagramMap = new HashMap<>();
 
     private void initialize(){
-        File file = new File("src/main/resources/words.txt");
+        File file = new File("src/main/resources/twl06.txt");
         try {
             BufferedReader in = new BufferedReader(new FileReader(file));
             String line;

@@ -20,7 +20,8 @@ public class AnagramsaurusTest extends TestHelper{
     @Test
     public void testAnagramsMap(){
         Anagramsaurus a = Anagramsaurus.INSTANCE;
-        Set<String> expected = new HashSet<>(Arrays.asList("MASTER", "REMAST", "STREAM"));
+        Set<String> expected = new HashSet<>(Arrays.asList(
+        "MATRES", "MASTER", "RAMETS", "MATERS", "STREAM", "TAMERS", "ARMETS"));
         Set<String> actual = new HashSet<>(a.getAnagrams("stream"));
         assertEquals(expected, actual);
     }
