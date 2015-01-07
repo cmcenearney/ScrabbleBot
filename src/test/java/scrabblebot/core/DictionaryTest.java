@@ -2,8 +2,6 @@ package scrabblebot.core;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class DictionaryTest {
 
     @Test
@@ -11,6 +9,7 @@ public class DictionaryTest {
         Dictionary d = Dictionary.INSTANCE;
         assert(d.validWord("hi"));
         assert(d.validWord("howdy"));
+        assert(d.validWord("me"));
         assert(!d.validWord("hiawatha"));
         assert(!d.validWord("sparklepants"));
     }

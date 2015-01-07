@@ -1,11 +1,9 @@
 package scrabblebot.core;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class Board implements Serializable {
+public class Board {
 
     public static final int boardSize = 15;
     private List<ArrayList<BoardSpace>> spaces = new ArrayList<ArrayList<BoardSpace>>(boardSize);

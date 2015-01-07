@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.*;
 
 public enum Anagramsaurus {
+
     INSTANCE;
 
     Anagramsaurus(){
@@ -51,4 +52,5 @@ public enum Anagramsaurus {
         Arrays.sort(chars);
         return String.valueOf(chars);
     }
+
 }

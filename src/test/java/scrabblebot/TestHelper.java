@@ -1,8 +1,9 @@
 package scrabblebot;
 
 import org.junit.Test;
-import scrabblebot.Library;
 import scrabblebot.core.Board;
+import scrabblebot.core.Tile;
+import scrabblebot.core.TileConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,7 +11,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class TestHelper {
@@ -29,8 +31,8 @@ public class TestHelper {
             List<String> lines = Files.readAllLines(Paths.get(path));
             for (int i = 0; i < 15; i++){
                 String[] vals = lines.get(i).split(" ");
-                if (vals.length != 15){
-                    throw new IllegalArgumentException("");
+                if (vals.length < 15){
+                    throw new IllegalArgumentException("yer board aint big enough");
                 }
                 for (int j = 0; j < 15; j++){
                     String v = vals[j];
@@ -43,6 +45,17 @@ public class TestHelper {
             e.printStackTrace();
         }
         return b;
+    }
+
+    public List<Tile> tilesFromString(String s){
+        List<Tile> tiles = new ArrayList<>();
+        String[] letters = s.split("");
+        TileConfig tc = new TileConfig();
+        for (String l : letters){
+            int points = tc.getTilePoints(l);
+            tiles.add(new Tile(l, points));
+        }
+        return tiles;
     }
 
     @Test public void testParseBoardFixture() {

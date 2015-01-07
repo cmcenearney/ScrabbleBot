@@ -30,7 +30,7 @@ public class Bot {
         return combos;
     }
 
-    Set<String> makeableWords(List<String> tiles, String wordOnBoard){
+    Set<String> allPossibleWords(List<String> tiles, String wordOnBoard){
         Set<String> words = new HashSet<>();
         List<String> combos = allCombos(tiles);
         for (String w : combos){
@@ -40,5 +40,7 @@ public class Bot {
         }
         return words;
     }
+
+
 
 }

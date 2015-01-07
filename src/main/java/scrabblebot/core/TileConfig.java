@@ -45,4 +45,8 @@ public class TileConfig {
         tile_config.put("Z",  new Tuple(1, 10));
     }
 
+    public int getTilePoints(String s){
+        return tile_config.get(s).points;
+    }
+
 }

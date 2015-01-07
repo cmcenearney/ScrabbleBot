@@ -31,7 +31,7 @@ public class BotTest extends TestHelper {
      7 7 1
 
      total = 127 = 7 + 21 + 35 + 35 + 21 + 7 + 1
-     */
+    */
     @Test
     public void testAllCombos(){
         List<String> tiles = new ArrayList<>(Arrays.asList("H","A","M","S","T","E","R"));
@@ -44,7 +44,7 @@ public class BotTest extends TestHelper {
     public void testAllMakeableWords(){
         List<String> tiles = new ArrayList<>(Arrays.asList("H","A","M","S","T","E","R"));
         Bot b = new Bot();
-        Set<String> words = b.makeableWords(tiles, "A");
+        Set<String> words = b.allPossibleWords(tiles, "A");
         p(words);
         assert(236 == words.size());
     }
