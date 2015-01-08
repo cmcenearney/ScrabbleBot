@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class Move {
 
-    enum Direction {
+    public enum Direction {
         ACROSS, DOWN
     }
 
@@ -253,4 +253,48 @@ public class Move {
         return board;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Move move = (Move) o;
+
+        if (column != move.column) return false;
+        if (row != move.row) return false;
+        if (!board.equals(move.board)) return false;
+        if (direction != move.direction) return false;
+        if (!tiles.equals(move.tiles)) return false;
+        if (!word.equals(move.word)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = row;
+        result = 31 * result + column;
+        result = 31 * result + direction.hashCode();
+        result = 31 * result + word.hashCode();
+        result = 31 * result + board.hashCode();
+        result = 31 * result + tiles.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Move{" +
+                "sideWords=" + sideWords +
+                ", score=" + score +
+                ", row=" + row +
+                ", column=" + column +
+                ", direction=" + direction +
+                ", word='" + word + '\'' +
+                ", errorMessage='" + errorMessage + '\'' +
+                ", board=" + board +
+                ", intersectsExistingWord=" + intersectsExistingWord +
+                ", d=" + d +
+                ", tiles=" + tiles +
+                '}';
+    }
 }

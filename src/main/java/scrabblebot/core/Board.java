@@ -51,4 +51,18 @@ public class Board {
                 .allMatch(s -> !s.isOccupied());
     }
 
+    public Board clone(){
+        Board newB = new Board();
+        for (int row = 0; row < boardSize; row++){
+            for (int col = 0; col < boardSize; col++){
+                BoardSpace parent = spaces.get(row).get(col);
+                BoardSpace new_space = spaces.get(row).get(col);
+                new_space.setValue(parent.getValue());
+                new_space.setOccupied(parent.isOccupied());
+            }
+        }
+        return newB;
+    }
+
+
 }
