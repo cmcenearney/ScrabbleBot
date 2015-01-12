@@ -1,6 +1,7 @@
 package scrabblebot.core;
 
 import org.junit.Test;
+import scrabblebot.data.Dictionary;
 
 public class DictionaryTest {
 

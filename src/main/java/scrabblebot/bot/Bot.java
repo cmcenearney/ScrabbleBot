@@ -2,6 +2,7 @@ package scrabblebot.bot;
 
 import scrabblebot.combinations.Combinatrix;
 import scrabblebot.core.*;
+import scrabblebot.data.Anagramsaurus;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -9,11 +10,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/*
+Brute force approach:
+ - take a board and a rack of tiles
+ - find all playable squares on the board
+ - for each square find all possible moves
+ - score the moves, sort and return the highest scoring
+ */
 public class Bot {
 
     Anagramsaurus a = Anagramsaurus.INSTANCE;
+    Board b;
 
-    public Bot() {}
+    public Bot(Board b) {
+        this.b = b;
+    }
 
     String joinList(List<Tile> list) {
         String r = "";
@@ -49,9 +60,9 @@ public class Bot {
      take an occupied boardspace, a word that will intersect with it,
      and return all Moves that can be made
     */
-    List<Move> movesForAGivenWord(Board b, String word, int row, int col, Direction dir, List<Tile> tiles) {
+    List<Move> movesForAGivenWord(String word, int row, int col, Direction dir, List<Tile> tiles) {
         List<Move> moves = new ArrayList<>();
-        List<Integer> offsets = new ArrayList<>();
+        List<Integer> offsets = new ArrayList<Integer>();
         String c = b.getSpace(row, col).getValue();
         for (int i = 0; i < word.length(); i++) {
             if (Character.toString(word.charAt(i)).equals(c)) {
@@ -70,48 +81,93 @@ public class Bot {
         return moves;
     }
 
-    List<Move> allMovesForAGivenTileRack(Board b, int row, int col, Direction dir, List<Tile> tiles) {
+    List<Move> allMovesForAGivenPlayableSquare(PlayableSquare sqr, List<Tile> tiles) {
         List<Move> moves = new ArrayList<>();
-        String boardString = getBoardStringFromStartingTile(b, row, col, dir);
+        //delete me
+       // PlayableSquare pSqr = new PlayableSquare(row,col,dir,WordPosition.PREFIX);
+        String boardString = getBoardStringFromPlayableSquare(sqr);
         for (String word : allPossibleWords(tiles, boardString)) {
-            moves.addAll(movesForAGivenWord(b, word, row, col, dir, tiles));
+            moves.addAll(movesForAGivenWord(word, sqr.row, sqr.column, sqr.direction, tiles));
         }
         return moves;
     }
 
-    String getBoardStringFromStartingTile(Board b, int row, int col,Direction dir) {
+    String getBoardStringFromPlayableSquare(PlayableSquare sqr) {
+        int row = sqr.row;
+        int col = sqr.column;
         BoardSpace s = b.getSpace(row, col);
         String str = "";
         while (s.isOccupied()) {
             str += s.getValue();
-            if (dir == Direction.DOWN) {
-                row++;
+            if (sqr.direction == Direction.DOWN) {
+                if (sqr.position == WordPosition.PREFIX) {
+                    row++;
+                } else {
+                    row--;
+                }
             } else {
-                col++;
+                if (sqr.position == WordPosition.PREFIX) {
+                    col++;
+                } else {
+                    col--;
+                }
             }
+            if (!(row < Board.boardSize-1 && col < Board.boardSize-1))
+                    break;
             s = b.getSpace(row, col);
         }
         return str;
     }
 
-    Set<PlayableSquare> getPlayableSquares(Board b){
+    /*
+    for each sqr in getPlayableSquares
+        - get allMovesForAGivenPlayableSquare, add to master List<Move>
+     */
+
+    List<Move> allMoves(List<Tile> tiles){
+        List<Move> moves = new ArrayList<Move>();
+        for (PlayableSquare sqr : getPlayableSquares()){
+            moves.addAll(allMovesForAGivenPlayableSquare(sqr, tiles));
+        }
+        return moves;
+    }
+
+    /*
+    highest scoring move
+    sort allMoves(), choose first move, effectively choosing at random among moves
+    that tied for the higest score
+     */
+    public Move highestScoringMove(List<Tile> tiles){
+        List<Move> moves = allMoves(tiles);
+        moves.stream().forEach(m -> m.makeMove());
+        return moves.stream()
+                .sorted((m1, m2) -> {
+                    m1.makeMove();
+                    m2.makeMove();
+                    return m2.getScore() - m1.getScore();
+                })
+                .collect(Collectors.toList())
+                .get(0);
+    }
+
+    public Set<PlayableSquare> getPlayableSquares(){
         Set<PlayableSquare> sqrs = new HashSet<>();
         List<ArrayList<BoardSpace>> spaces = b.getSpaces();
         for (int i = 0; i < Board.boardSize; i++){
             for (int j = 0; j < Board.boardSize; j++){
                 //BoardSpace space = spaces.get(i).get(j);
-                if(isPlayable(b,i,j)){
+                if(isPlayable(i,j)){
                     //if leftNeighborEmpty then ACROSS and PREFIX
-                    if (leftNeighborEmpty(b,i,j))
+                    if (leftNeighborEmpty(i,j))
                         sqrs.add(new PlayableSquare(i,j,Direction.ACROSS, WordPosition.PREFIX));
                     //if rightNeighborEmpty then ACROSS abd SUFFIX
-                    if (rightNeighborEmpty(b,i,j))
+                    if (rightNeighborEmpty(i,j))
                         sqrs.add(new PlayableSquare(i,j, Direction.ACROSS, WordPosition.SUFFIX));
                     //if upperNeighborEmpty then DOWN and PREFIX
-                    if (upperNeighborEmpty(b,i,j))
+                    if (upperNeighborEmpty(i,j))
                         sqrs.add(new PlayableSquare(i,j,Direction.DOWN, WordPosition.PREFIX));
                     //if lowerNeighborEmpty then DOWN and SUFFIX
-                    if (lowerNeighborEmpty(b,i,j))
+                    if (lowerNeighborEmpty(i,j))
                         sqrs.add(new PlayableSquare(i,j,Direction.DOWN, WordPosition.SUFFIX));
                 }
             }
@@ -123,7 +179,7 @@ public class Bot {
     identify board squares that words can be joined to
     - space is occupied and at least one neighbor is not occupied
      */
-    boolean isPlayable(Board b, int row, int col) {
+    boolean isPlayable(int row, int col) {
         List<ArrayList<BoardSpace>> spaces = b.getSpaces();
         List<Coordinate> neighbors = allNeighbors(row, col);
         return (spaces.get(row).get(col).isOccupied()  &&
@@ -156,25 +212,25 @@ public class Bot {
         return coords;
     }
 
-    private boolean leftNeighborEmpty(Board b, int row, int col){
+    private boolean leftNeighborEmpty(int row, int col){
         if(col == 0)
             return false;
         return !b.getSpace(row, col-1).isOccupied();
     }
 
-    private boolean rightNeighborEmpty(Board b, int row, int col){
+    private boolean rightNeighborEmpty(int row, int col){
         if(col == Board.boardSize-1)
             return false;
         return !b.getSpace(row, col+1).isOccupied();
     }
 
-    private boolean upperNeighborEmpty(Board b, int row, int col){
+    private boolean upperNeighborEmpty(int row, int col){
         if(row == 0)
             return false;
         return !b.getSpace(row-1, col).isOccupied();
     }
 
-    private boolean lowerNeighborEmpty(Board b, int row, int col){
+    private boolean lowerNeighborEmpty(int row, int col){
         if(row == Board.boardSize-1)
             return false;
         return !b.getSpace(row+1, col).isOccupied();

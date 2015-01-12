@@ -17,6 +17,3 @@ ScrabbleBot
 
 There will be words...
 
-
-
-preprocess set of words for every tile-rack

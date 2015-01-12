@@ -2,7 +2,10 @@ package scrabblebot.bot;
 
 import org.junit.Test;
 import scrabblebot.TestHelper;
-import scrabblebot.core.*;
+import scrabblebot.core.Direction;
+import scrabblebot.core.Move;
+import scrabblebot.core.Tile;
+import scrabblebot.core.WordPosition;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -37,7 +40,7 @@ public class BotTest extends TestHelper {
     @Test
     public void testAllCombos(){
         List<Tile> tiles = tilesFromString("HAMSTER");
-        Bot b = new Bot();
+        Bot b = new Bot(emptyBoard);
         List<String> combos = b.allCombos(tiles);
         assert(127 == combos.size());
     }
@@ -45,7 +48,7 @@ public class BotTest extends TestHelper {
     @Test
     public void testAllMakeableWords(){
         List<Tile> tiles = tilesFromString("HAMSTER");
-        Bot b = new Bot();
+        Bot b = new Bot(emptyBoard);
         Set<String> words = b.allPossibleWords(tiles, "A");
         p(words);
         assert(205 == words.size());
@@ -54,25 +57,29 @@ public class BotTest extends TestHelper {
     @Test
     public void testMovesForAGivenWord(){
         List<Tile> tiles = tilesFromString("HAMSTER");
-        Bot b = new Bot();
+        Bot b = new Bot(oneA);
         String word = "RAMATE";
-        List<Move> moves = b.movesForAGivenWord(oneA, word, 7,7, Direction.ACROSS , tiles);
+        List<Move> moves = b.movesForAGivenWord(word, 7,7, Direction.ACROSS , tiles);
         assert(2 == moves.size());
     }
 
     @Test
     public void testGetBoardStringFromStartingTile(){
-        Bot bot = new Bot();
-        assertEquals("A", bot.getBoardStringFromStartingTile(oneA, 7, 7, Direction.ACROSS));
-        assertEquals("A", bot.getBoardStringFromStartingTile(oneA, 7, 7, Direction.DOWN));
-        assertEquals("SWEET", bot.getBoardStringFromStartingTile(twoWords, 7, 5, Direction.ACROSS));
+        Bot bot = new Bot(oneA);
+        PlayableSquare aAcrossPre = new PlayableSquare(7,7,Direction.ACROSS,WordPosition.PREFIX);
+        PlayableSquare aDownPre = new PlayableSquare(7,7,Direction.DOWN,WordPosition.PREFIX);
+        assertEquals("A", bot.getBoardStringFromPlayableSquare(aAcrossPre));
+        assertEquals("A", bot.getBoardStringFromPlayableSquare(aDownPre));
+        Bot twoWordsBot = new  Bot(twoWords);
+        PlayableSquare sweetAcrossPre = new PlayableSquare(7,5,Direction.ACROSS,WordPosition.PREFIX);
+        assertEquals("SWEET", twoWordsBot.getBoardStringFromPlayableSquare(sweetAcrossPre));
     }
 
     @Test
     public void testAllTheMoves() {
         List<Tile> tiles = tilesFromString("HAMSTER");
-        Bot b = new Bot();
-        List<Move> moves = b.allMovesForAGivenTileRack(oneA,7,7,Direction.ACROSS, tiles);
+        Bot b = new Bot(oneA);
+        List<Move> moves = b.allMoves(tiles);
         p(moves.size());
         moves.stream().filter(m -> m.checkMove());
         p(moves.size());
@@ -85,43 +92,52 @@ public class BotTest extends TestHelper {
                 })
                 .collect(Collectors.toList());
         assert( 12 == (moves.get(0).getScore()));
+        assert( 12 == b.highestScoringMove(tiles).getScore());
+    }
+
+    @Test
+    public void testHighestScoringMove(){
+        Bot b = new Bot(fiveWords);
+        Move theOne = b.highestScoringMove(tilesFromString("AXERODS"));
+        p(theOne.getScore());
     }
 
     @Test
     public void testIsPlayable(){
-        Bot b = new Bot();
-        assert(b.isPlayable(oneA,7,7));
-        assertFalse(b.isPlayable(fiveWords,7,8));
-        assert(b.isPlayable(fiveWords,7,7));
+        Bot oneABot = new Bot(oneA);
+        assert(oneABot.isPlayable(7,7));
+        Bot fiveWordsBot = new Bot(fiveWords);
+        assertFalse(fiveWordsBot.isPlayable(7, 8));
+        assert(fiveWordsBot.isPlayable(7,7));
     }
 
     @Test
     public void testGetPlayableSquaresEmpty(){
-        Bot b = new Bot();
-        assert(b.getPlayableSquares(emptyBoard).isEmpty());
+        Bot bot = new Bot(emptyBoard);
+        assert(bot.getPlayableSquares().isEmpty());
     }
 
     @Test
     public void testGetPlayableSquaresFullBoard(){
-        Bot b = new Bot();
-        assert(b.getPlayableSquares(fullOfA).isEmpty());
+        Bot bot = new Bot(fullOfA);
+        assert(bot.getPlayableSquares().isEmpty());
     }
 
     @Test
     public void testGetPlayableSquaresOneA(){
-        Bot b = new Bot();
+        Bot bot = new Bot(oneA);
         Set<PlayableSquare> expected = new HashSet<PlayableSquare>(Arrays.asList(
                 new PlayableSquare(7,7,Direction.ACROSS, WordPosition.SUFFIX),
                 new PlayableSquare(7,7,Direction.ACROSS,WordPosition.PREFIX),
                 new PlayableSquare(7,7,Direction.DOWN, WordPosition.SUFFIX),
                 new PlayableSquare(7,7,Direction.DOWN, WordPosition.PREFIX)
             ));
-        assertEquals(expected, b.getPlayableSquares(oneA));
+        assertEquals(expected, bot.getPlayableSquares());
     }
 
     @Test
     public void testGetPlayableSquaresTwoWords(){
-        Bot b = new Bot();
+        Bot bot = new Bot(twoWords);
         Set<PlayableSquare> expected = new HashSet<PlayableSquare>(Arrays.asList(
                 new PlayableSquare(5,9,Direction.DOWN, WordPosition.PREFIX),
                 new PlayableSquare(5,9,Direction.ACROSS,WordPosition.PREFIX),
@@ -150,12 +166,12 @@ public class BotTest extends TestHelper {
                 new PlayableSquare(7,8,Direction.DOWN, WordPosition.SUFFIX),
                 new PlayableSquare(7,8,Direction.DOWN, WordPosition.PREFIX)
         ));
-        assertEquals(expected, b.getPlayableSquares(twoWords));
+        assertEquals(expected, bot.getPlayableSquares());
     }
 
     @Test
     public void testGetPlayableSquaresThreeWords(){
-        Bot b = new Bot();
+        Bot bot = new Bot(threeWords);
         Set<PlayableSquare> expected = new HashSet<PlayableSquare>(Arrays.asList(
                 new PlayableSquare(5,9,Direction.DOWN, WordPosition.PREFIX),
                 new PlayableSquare(5,9,Direction.ACROSS,WordPosition.PREFIX),
@@ -192,12 +208,12 @@ public class BotTest extends TestHelper {
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.PREFIX),
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.SUFFIX)
         ));
-        assertEquals(expected, b.getPlayableSquares(threeWords));
+        assertEquals(expected, bot.getPlayableSquares());
     }
 
     @Test
     public void testGetPlayableSquaresFourWords(){
-        Bot b = new Bot();
+        Bot bot = new Bot(fourWords);
         Set<PlayableSquare> expected = new HashSet<PlayableSquare>(Arrays.asList(
                 new PlayableSquare(5,9,Direction.DOWN, WordPosition.PREFIX),
                 new PlayableSquare(5,9,Direction.ACROSS,WordPosition.PREFIX),
@@ -244,12 +260,12 @@ public class BotTest extends TestHelper {
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.PREFIX),
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.SUFFIX)
         ));
-        assertEquals(expected, b.getPlayableSquares(fourWords));
+        assertEquals(expected, bot.getPlayableSquares());
     }
 
     @Test
     public void testGetPlayableSquaresFiveWords(){
-        Bot b = new Bot();
+        Bot bot = new Bot(fiveWords);
         Set<PlayableSquare> expected = new HashSet<PlayableSquare>(Arrays.asList(
                 new PlayableSquare(5,9,Direction.DOWN, WordPosition.PREFIX),
                 new PlayableSquare(5,9,Direction.ACROSS,WordPosition.PREFIX),
@@ -296,7 +312,7 @@ public class BotTest extends TestHelper {
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.PREFIX),
                 new PlayableSquare(12,13,Direction.DOWN,WordPosition.SUFFIX)
         ));
-        assertEquals(expected, b.getPlayableSquares(fiveWords));
+        assertEquals(expected, bot.getPlayableSquares());
     }
 }
 

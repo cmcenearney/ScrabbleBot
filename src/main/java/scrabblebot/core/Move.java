@@ -1,5 +1,7 @@
 package scrabblebot.core;
 
+import scrabblebot.data.Dictionary;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -205,11 +207,15 @@ public class Move {
         int tiles_placed = 0;
         int multiplicative_factor = 1;
         for (int i = 0; i < word.length(); i++) {
-            BoardSpace current_space;
+            BoardSpace current_space = board.getSpace(row, column);
+            try {
             if (direction == Direction.ACROSS) {
                 current_space = board.getSpace(row, (column + i));
             } else {
                 current_space = board.getSpace((row + i), column);
+            }
+            } catch (IndexOutOfBoundsException e) {
+                System.out.print(this.toString());
             }
             String current_space_value = current_space.getValue();
             String current_letter = Character.toString(word.charAt(i));

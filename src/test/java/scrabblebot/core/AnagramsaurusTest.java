@@ -2,6 +2,7 @@ package scrabblebot.core;
 
 import org.junit.Test;
 import scrabblebot.TestHelper;
+import scrabblebot.data.Anagramsaurus;
 
 import java.util.Arrays;
 import java.util.HashSet;
