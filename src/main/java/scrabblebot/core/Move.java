@@ -17,10 +17,6 @@ import java.util.stream.Collectors;
  */
 public class Move {
 
-    public enum Direction {
-        ACROSS, DOWN
-    }
-
     private ArrayList<SideWord> sideWords = new ArrayList<SideWord>();
     private int score;
     private final int row;

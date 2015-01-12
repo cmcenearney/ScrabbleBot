@@ -14,8 +14,15 @@ import java.util.List;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-
 public class TestHelper {
+
+    public Board emptyBoard = parseBoardFixture("src/test/resources/board_states/empty.txt");
+    public Board fullOfA = parseBoardFixture("src/test/resources/board_states/full_of_a.txt");
+    public Board oneA = parseBoardFixture("src/test/resources/board_states/one_a.txt");
+    public Board twoWords = parseBoardFixture("src/test/resources/board_states/two_words.txt");
+    public Board threeWords = parseBoardFixture("src/test/resources/board_states/three_words.txt");
+    public Board fourWords = parseBoardFixture("src/test/resources/board_states/four_words.txt");
+    public Board fiveWords = parseBoardFixture("src/test/resources/board_states/five_words.txt");
 
     public void p(Object... args){
         String s = "";

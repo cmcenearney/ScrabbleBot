@@ -13,8 +13,7 @@ public class Bot {
 
     Anagramsaurus a = Anagramsaurus.INSTANCE;
 
-    public Bot() {
-    }
+    public Bot() {}
 
     String joinList(List<Tile> list) {
         String r = "";
@@ -50,7 +49,7 @@ public class Bot {
      take an occupied boardspace, a word that will intersect with it,
      and return all Moves that can be made
     */
-    List<Move> movesForAGivenWord(Board b, String word, int row, int col, Move.Direction dir, List<Tile> tiles) {
+    List<Move> movesForAGivenWord(Board b, String word, int row, int col, Direction dir, List<Tile> tiles) {
         List<Move> moves = new ArrayList<>();
         List<Integer> offsets = new ArrayList<>();
         String c = b.getSpace(row, col).getValue();
@@ -61,7 +60,7 @@ public class Bot {
         }
         for (Integer offset : offsets) {
             Move m;
-            if (dir == Move.Direction.ACROSS) {
+            if (dir == Direction.ACROSS) {
                 m = new Move(b.clone(), row, col - offset, dir, word, tiles);
             } else {
                 m = new Move(b.clone(), row - offset, col, dir, word, tiles);
@@ -71,7 +70,7 @@ public class Bot {
         return moves;
     }
 
-    List<Move> allMovesForAGivenTileRack(Board b, int row, int col, Move.Direction dir, List<Tile> tiles) {
+    List<Move> allMovesForAGivenTileRack(Board b, int row, int col, Direction dir, List<Tile> tiles) {
         List<Move> moves = new ArrayList<>();
         String boardString = getBoardStringFromStartingTile(b, row, col, dir);
         for (String word : allPossibleWords(tiles, boardString)) {
@@ -80,12 +79,12 @@ public class Bot {
         return moves;
     }
 
-    String getBoardStringFromStartingTile(Board b, int row, int col, Move.Direction dir) {
+    String getBoardStringFromStartingTile(Board b, int row, int col,Direction dir) {
         BoardSpace s = b.getSpace(row, col);
         String str = "";
         while (s.isOccupied()) {
             str += s.getValue();
-            if (dir == Move.Direction.DOWN) {
+            if (dir == Direction.DOWN) {
                 row++;
             } else {
                 col++;
@@ -95,17 +94,30 @@ public class Bot {
         return str;
     }
 
-//    List<PlayableSquare> getPlayableSquares(Board b){
-//        List<PlayableSquare> sqrs = new ArrayList<>();
-//        List<ArrayList<BoardSpace>> spaces = b.getSpaces();
-//        for (int i = 0; i < Board.boardSize; i++){
-//            for (int j = 0; j < Board.boardSize; j++){
-//                BoardSpace space = spaces.get(i).get(j);
-//                if(!space.isOccupied() && hasOccupiedNeighbor())
-//            }
-//        }
-//        return sqrs;
-//    }
+    Set<PlayableSquare> getPlayableSquares(Board b){
+        Set<PlayableSquare> sqrs = new HashSet<>();
+        List<ArrayList<BoardSpace>> spaces = b.getSpaces();
+        for (int i = 0; i < Board.boardSize; i++){
+            for (int j = 0; j < Board.boardSize; j++){
+                //BoardSpace space = spaces.get(i).get(j);
+                if(isPlayable(b,i,j)){
+                    //if leftNeighborEmpty then ACROSS and PREFIX
+                    if (leftNeighborEmpty(b,i,j))
+                        sqrs.add(new PlayableSquare(i,j,Direction.ACROSS, WordPosition.PREFIX));
+                    //if rightNeighborEmpty then ACROSS abd SUFFIX
+                    if (rightNeighborEmpty(b,i,j))
+                        sqrs.add(new PlayableSquare(i,j, Direction.ACROSS, WordPosition.SUFFIX));
+                    //if upperNeighborEmpty then DOWN and PREFIX
+                    if (upperNeighborEmpty(b,i,j))
+                        sqrs.add(new PlayableSquare(i,j,Direction.DOWN, WordPosition.PREFIX));
+                    //if lowerNeighborEmpty then DOWN and SUFFIX
+                    if (lowerNeighborEmpty(b,i,j))
+                        sqrs.add(new PlayableSquare(i,j,Direction.DOWN, WordPosition.SUFFIX));
+                }
+            }
+        }
+        return sqrs;
+    }
 
     /*
     identify board squares that words can be joined to
@@ -113,10 +125,11 @@ public class Bot {
      */
     boolean isPlayable(Board b, int row, int col) {
         List<ArrayList<BoardSpace>> spaces = b.getSpaces();
-        List<Coordinates> neighbors = allNeighbors(row, col);
-        return neighbors.stream()
+        List<Coordinate> neighbors = allNeighbors(row, col);
+        return (spaces.get(row).get(col).isOccupied()  &&
+                neighbors.stream()
                 .map(m -> spaces.get(m.row).get(m.col))
-                .anyMatch(s -> !s.isOccupied());
+                .anyMatch(s -> !s.isOccupied()));
     }
 
     /*
@@ -126,23 +139,45 @@ public class Bot {
         row, col-1
         row, col+1
     */
-    List<Coordinates> allNeighbors(int row, int col) {
-        List<Coordinates> coords = new ArrayList<>();
+    private List<Coordinate> allNeighbors(int row, int col) {
+        List<Coordinate> coords = new ArrayList<>();
         if (row > 0) {
-            coords.add(new Coordinates(row - 1, col));
+            coords.add(new Coordinate(row - 1, col));
         }
         if (row < 14) {
-            coords.add(new Coordinates(row + 1, col));
+            coords.add(new Coordinate(row + 1, col));
         }
         if (col > 0) {
-            coords.add(new Coordinates(row, col - 1));
+            coords.add(new Coordinate(row, col - 1));
         }
         if (col < 14) {
-            coords.add(new Coordinates(row, col + 1));
+            coords.add(new Coordinate(row, col + 1));
         }
         return coords;
     }
 
+    private boolean leftNeighborEmpty(Board b, int row, int col){
+        if(col == 0)
+            return false;
+        return !b.getSpace(row, col-1).isOccupied();
+    }
 
+    private boolean rightNeighborEmpty(Board b, int row, int col){
+        if(col == Board.boardSize-1)
+            return false;
+        return !b.getSpace(row, col+1).isOccupied();
+    }
+
+    private boolean upperNeighborEmpty(Board b, int row, int col){
+        if(row == 0)
+            return false;
+        return !b.getSpace(row-1, col).isOccupied();
+    }
+
+    private boolean lowerNeighborEmpty(Board b, int row, int col){
+        if(row == Board.boardSize-1)
+            return false;
+        return !b.getSpace(row+1, col).isOccupied();
+    }
 
 }

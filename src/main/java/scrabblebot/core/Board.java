@@ -1,5 +1,7 @@
 package scrabblebot.core;
 
+import scrabblebot.bot.Coordinate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,10 @@ public class Board {
 
     public BoardSpace getSpace(int row, int column){
         return this.spaces.get(row).get(column);
+    }
+
+    public BoardSpace getSpace(Coordinate co){
+        return this.spaces.get(co.getRow()).get(co.getCol());
     }
 
     public ArrayList<BoardSpace> getRow(int row){
