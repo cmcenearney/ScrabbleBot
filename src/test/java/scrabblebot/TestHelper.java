@@ -1,5 +1,7 @@
 package scrabblebot;
 
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Chars;
 import org.junit.Test;
 import scrabblebot.core.Board;
 import scrabblebot.core.Tile;
@@ -10,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -37,15 +40,18 @@ public class TestHelper {
         try {
             List<String> lines = Files.readAllLines(Paths.get(path));
             for (int i = 0; i < 15; i++){
-                String[] vals = lines.get(i).split(" ");
-                if (vals.length < 15){
+                //char[] vals = lines.get(i).toCharArray(); //split(" ");
+                List<Character> chars = Lists.newArrayList(Chars.asList(lines.get(i).toCharArray()));
+                chars = chars.stream().filter(c -> !c.equals(' ')).collect(Collectors.toList());
+                        // List<Character> chars = new ArrayList<Character>(Arrays.);
+                if (chars.size() < 15){
                     throw new IllegalArgumentException("yer board aint big enough");
                 }
                 for (int j = 0; j < 15; j++){
-                    String v = vals[j];
-                    if (v.equals("_"))
-                        v = null;
-                    b.getSpace(i,j).setValue(v);
+                    Character c = chars.get(j);
+                    if (c.equals('_'))
+                        c = null;
+                    b.getSpace(i,j).setValue(c);
                 }
             }
         } catch (IOException e){
@@ -56,9 +62,9 @@ public class TestHelper {
 
     public List<Tile> tilesFromString(String s){
         List<Tile> tiles = new ArrayList<>();
-        String[] letters = s.split("");
+        //String[] letters = s.split("");
         TileConfig tc = new TileConfig();
-        for (String l : letters){
+        for (char l : s.toCharArray()){
             int points = tc.getTilePoints(l);
             tiles.add(new Tile(l, points));
         }
@@ -77,12 +83,12 @@ public class TestHelper {
         assertTrue(
                 b.getSpaces().stream()
                         .flatMap(r -> r.stream())
-                        .allMatch(s -> s.getValue().equals("A"))
+                        .allMatch(s -> s.getValue().equals('A'))
                 );
 
         b = parseBoardFixture(oneA);
         assertFalse(b.isEmpty());
-        assertTrue(b.getSpace(7,7).getValue().equals("A"));
+        assertTrue(b.getSpace(7,7).getValue().equals('A'));
     }
 
 }

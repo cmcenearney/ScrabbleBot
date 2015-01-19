@@ -1,4 +1,4 @@
-package scrabblebot.data;
+package scrabblebot.core;
 
 import java.io.BufferedReader;
 import java.io.File;

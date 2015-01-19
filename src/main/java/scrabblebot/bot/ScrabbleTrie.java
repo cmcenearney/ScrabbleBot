@@ -1,19 +1,43 @@
-package scrabblebot.data;
+package scrabblebot.bot;
 
+import scrabblebot.data.TrieNode;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-public class Trie {
+public enum ScrabbleTrie {
+
+    INSTANCE;
+
+    public TrieNode getRoot() {
+        return root;
+    }
 
     private TrieNode root = new TrieNode("");
 
-    public Trie() {}
-
-    public Trie(List<String> words){
-        for (String word : words){
-            addWord(word);
+    private void initialize(){
+        File file = new File("src/main/resources/twl06.txt");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.length() > 0) {
+                    this.addWord(line.toUpperCase());
+                }
+            }
+        }
+        catch (IOException e){
+            System.out.println("problem reading dictionary file:" + e);
         }
     }
+
+    ScrabbleTrie (){initialize();}
 
     public void addWord(String word){
         TrieNode currentNode = root;
@@ -41,10 +65,6 @@ public class Trie {
         return currentNode;
     }
 
-    public TrieNode getRoot() {
-        return root;
-    }
-
     public boolean containsPrefix(String word) {
         return (getNode(word) != null && !getNode(word).isWord());
     }
@@ -57,7 +77,7 @@ public class Trie {
         ArrayList<String> words = new ArrayList<String>();
         return listWords(root, words);
     }
-
+    
     public ArrayList<String> listWords(TrieNode node, ArrayList<String> words){
         TrieNode currentNode = node;
         if (currentNode.isWord()) {
@@ -69,6 +89,18 @@ public class Trie {
             }
         }
         return words;
+    }
+
+    List<TrieNode> breadthFirstTraversal(TrieNode node){
+        List<TrieNode> results = new LinkedList<TrieNode>();
+        Queue<TrieNode> queue = new LinkedList<>();
+        queue.add(node);
+        while (!queue.isEmpty()) {
+            TrieNode n = queue.remove();
+            n.getChildren().stream().forEach(i -> queue.add(i));
+            results.add(n);
+        }
+        return results;
     }
 
 }

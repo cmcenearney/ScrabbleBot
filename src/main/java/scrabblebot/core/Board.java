@@ -1,7 +1,5 @@
 package scrabblebot.core;
 
-import scrabblebot.bot.Coordinate;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,10 +32,6 @@ public class Board {
         return this.spaces.get(row).get(column);
     }
 
-    public BoardSpace getSpace(Coordinate co){
-        return this.spaces.get(co.getRow()).get(co.getCol());
-    }
-
     public ArrayList<BoardSpace> getRow(int row){
         return spaces.get(row);
     }
@@ -62,13 +56,29 @@ public class Board {
         for (int row = 0; row < boardSize; row++){
             for (int col = 0; col < boardSize; col++){
                 BoardSpace parent = spaces.get(row).get(col);
-                BoardSpace new_space = spaces.get(row).get(col);
-                new_space.setValue(parent.getValue());
-                new_space.setOccupied(parent.isOccupied());
+                BoardSpace newSpace = newB.getSpaces().get(row).get(col);
+                newSpace.setValue(parent.getValue());
+                newSpace.setOccupied(parent.isOccupied());
             }
         }
         return newB;
     }
 
-
+    @Override
+    public String toString() {
+        String out = "";
+        for(ArrayList<BoardSpace> row : spaces){
+            for (BoardSpace s : row){
+                if (s.isOccupied()) {
+                    out += " " + s.getValue() + " ";
+                } else {
+                    out += " _ ";
+                }
+            }
+            out += "\n";
+        }
+        return "Board {\n" +
+                out +
+                '}';
+    }
 }

@@ -7,18 +7,18 @@ public class BoardSpace {
     }
 
     final Type type;
-    private String value = null;
+    private Character value = null;
     private boolean occupied = false;
 
     public BoardSpace(Type type){
         this.type = type;
     }
 
-    public String getValue() {
+    public Character getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(Character value) {
         this.value = value;
         if (value != null){
             this.occupied = true;
@@ -36,5 +36,6 @@ public class BoardSpace {
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
     }
+
 
 }

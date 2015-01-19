@@ -89,4 +89,13 @@ public class MoveTest extends TestHelper {
         assert(27 == m.getScore());
     }
 
+    //Move{ score=6, row=12, column=9, direction=ACROSS, word='SWIPE'}
+    @Test
+    public void testTepidOnTwoWords() {
+        List<Tile> tiles = tilesFromString("TPIDEAW");
+        Move m = new Move(twoWords,12,9,Direction.ACROSS, "SWIPE", tiles);
+        assert(m.checkMove());
+        m.makeMove();
+        assert(20 == m.getScore());
+    }
 }
