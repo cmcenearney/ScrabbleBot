@@ -57,28 +57,11 @@ public class Move {
     }
 
 
-    private boolean validateBeginningAndEnd(){
-        if(validateBeginning() && validateEnd()){
-            return true;
-        } else {
-            errorMessage = BEGINNING_OR_END_OF_WORD_PROBLEM;
-            return false;
-        }
-    }
-
     private boolean validateBeginning(){
         if(direction == Direction.ACROSS){
             return (column == 0 || !board.getSpace(row, column-1).isOccupied());
         } else {
             return (row == 0 || !board.getSpace(row-1, column).isOccupied());
-        }
-    }
-
-    private boolean validateEnd(){
-        if(direction == Direction.ACROSS){
-            return (column == Board.BOARD_SIZE - 1 || !board.getSpace(row, column+1).isOccupied());
-        } else {
-            return (row == Board.BOARD_SIZE - 1 || !board.getSpace(row+1, column).isOccupied());
         }
     }
 
@@ -89,8 +72,11 @@ public class Move {
         //if it's the first move make sure it touches the center tile
         if (!checkIfFirstMoveThatCenterTileIsTouched())
             return false;
-        if (!validateBeginningAndEnd())
+        //make sure it doesn't adjoin an existing tile at the front (malformed / user error)
+        if (!validateBeginning()){
+            errorMessage = BEGINNING_OR_END_OF_WORD_PROBLEM;
             return false;
+        }
         //then check that it will work
         boolean tilePlaced = false;
         List<Character> tileValues = getTileValues(tiles);
