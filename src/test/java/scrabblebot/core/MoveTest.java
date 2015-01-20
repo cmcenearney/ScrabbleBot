@@ -102,7 +102,8 @@ public class MoveTest extends TestHelper {
     public void testTepidOnTwoWords() {
         List<Tile> tiles = tilesFromString("TPIDEAW");
         Move m = new Move(twoWords,12,9,Direction.ACROSS, "SWIPE", tiles);
-        assert(m.checkMove());
+        m.checkMove();
+        p(m.getErrorMessage());
         m.makeMove();
         assert(20 == m.getScore());
     }
