@@ -1,6 +1,7 @@
 package scrabblebot.core;
 
-import scrabblebot.data.Dictionary;
+import scrabblebot.bot.ScrabbleTrie;
+import scrabblebot.data.Trie;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,25 +20,234 @@ import java.util.stream.Collectors;
  */
 public class Move {
 
+
     private ArrayList<SideWord> sideWords = new ArrayList<SideWord>();
     private int score;
     private final int row;
     private final int column;
     private final Direction direction;
     private final String word;
-    private String errorMessage = "error";
-    protected Board board;
+    private String errorMessage = DEFAULT_ERR_MSG;
+    protected final Board board;
     boolean intersectsExistingWord = false;
-    Dictionary d = Dictionary.INSTANCE;
+    Trie d = ScrabbleTrie.INSTANCE.getTrie();
     private List<Tile> tiles;
+
+    static final String DEFAULT_ERR_MSG = "error";
+    static final String BEGINNING_OR_END_OF_WORD_PROBLEM = "there is a problem with the beginning or end of this word";
+    static final String WORD_TOO_LARGE = "word is too big for that spot.";
+    static final String CONFLICT_WITH_PLACED_TILE = "there is a conflict with an already placed tile";
+    static final String INVALID_WORD = "word is not valid in our lexicon";
+    static final String FIRST_MOVE_CENTER_TILE = "Error - the first move must touch the center tile (H,8).";
+    static final String FAILED_SIDEWORD_CHECK = "failed side word check at";
 
     public Move(Board board, int row, int column, Direction direction, String word, List<Tile> tiles) {
         this.row = row;
         this.column = column;
         this.word = word;
         this.direction = direction;
-        this.board = board;
+        this.board = board.clone();
         this.tiles = tiles;
+    }
+
+
+    public Move process(){
+        checkMove();
+        return makeMove();
+    }
+
+
+    private boolean validateBeginningAndEnd(){
+        if(validateBeginning() && validateEnd()){
+            return true;
+        } else {
+            errorMessage = BEGINNING_OR_END_OF_WORD_PROBLEM;
+            return false;
+        }
+    }
+
+    private boolean validateBeginning(){
+        if(direction == Direction.ACROSS){
+            return (column == 0 || !board.getSpace(row, column-1).isOccupied());
+        } else {
+            return (row == 0 || !board.getSpace(row-1, column).isOccupied());
+        }
+    }
+
+    private boolean validateEnd(){
+        if(direction == Direction.ACROSS){
+            return (column == Board.BOARD_SIZE - 1 || !board.getSpace(row, column+1).isOccupied());
+        } else {
+            return (row == Board.BOARD_SIZE - 1 || !board.getSpace(row+1, column).isOccupied());
+        }
+    }
+
+    public boolean checkMove() {
+        //first check that it's a word
+        if (!validateWord(word))
+            return false;
+        //if it's the first move make sure it touches the center tile
+        if (!checkIfFirstMoveThatCenterTileIsTouched())
+            return false;
+        if (!validateBeginningAndEnd())
+            return false;
+        //then check that it will work
+        boolean tilePlaced = false;
+        List<Character> tileValues = getTileValues(tiles);
+        //iterate over the proposed word / board spaces and check at each space/letter that it is possible
+        for (int i = 0; i < word.length(); i++) {
+            int x = row;
+            int y = column;
+            Character currentLetter = word.charAt(i);
+            if (direction == Direction.ACROSS) {
+                y = column + i;
+            } else {
+                x = row + i;
+            }
+            if (y >= Board.BOARD_SIZE || x >= Board.BOARD_SIZE) {
+                errorMessage = WORD_TOO_LARGE;
+                return false;
+            }
+            BoardSpace currentSpace = board.getSpace(x, y);
+            boolean spaceOccupied = currentSpace.isOccupied();
+            Character currentSpaceValue = currentSpace.getValue();
+            // there is a letter on the space and it's *not* the right letter of the word we're checking
+            if (spaceOccupied && !currentLetter.equals(currentSpaceValue)) {
+                errorMessage = CONFLICT_WITH_PLACED_TILE;
+                return false;
+            }
+            // there is a letter on the space and it *is* the right letter of the word we're checking
+            else if (spaceOccupied && currentLetter.equals(currentSpaceValue)) {
+                intersectsExistingWord = true;
+                continue;
+            }
+            // the space is empty and player has a tile for the letter
+            else if (!spaceOccupied && tileValues.contains(currentLetter)) {
+                if (sideWord(currentLetter, x, y)) {
+                    tileValues.remove(currentLetter);
+                    tilePlaced = true;
+                } else {
+                    errorMessage = FAILED_SIDEWORD_CHECK;
+                    return false;
+                }
+            }
+            // the space is empty and player doesn't have a tile for the letter
+            else if (!spaceOccupied && !tileValues.contains(currentLetter)) {
+                return false;
+            }
+        }
+        return (tilePlaced && ((board.isEmpty()) || intersectsExistingWord));
+    }
+
+    public Move makeMove() {
+        int score = 0;
+        int tilesPlaced = 0;
+        int multiplicativeFactor = 1;
+        for (int i = 0; i < word.length(); i++) {
+            BoardSpace currentSpace = board.getSpace(row, column);
+            try {
+            if (direction == Direction.ACROSS) {
+                currentSpace = board.getSpace(row, (column + i));
+            } else {
+                currentSpace = board.getSpace((row + i), column);
+            }
+            } catch (IndexOutOfBoundsException e) {
+                System.out.print(this.toString());
+            }
+            Character currentSpaceValue = currentSpace.getValue();
+            Character currentLetter = word.charAt(i);
+            boolean spaceOccupied = currentSpace.isOccupied();
+            if (!spaceOccupied) {
+                BoardSpace.Type type = currentSpace.getType();
+                currentSpace.setValue(currentLetter);
+                tilesPlaced++;
+                int p = TileConfig.getTilePoints(currentLetter);
+                if (type == BoardSpace.Type.TRIPLE_LETTER) {
+                    score += (p * 3);
+                } else if (type == BoardSpace.Type.DOUBLE_LETTER) {
+                    score += (p * 2);
+                } else if (type == BoardSpace.Type.TRIPLE_WORD) {
+                    multiplicativeFactor *= 3;
+                    score += p;
+                } else if (type == BoardSpace.Type.DOUBLE_WORD) {
+                    multiplicativeFactor *= 2;
+                    score += p;
+                } else if (type == BoardSpace.Type.PLAIN) {
+                    score += p;
+                }
+            } else if (spaceOccupied) {
+                int p = TileConfig.getTilePoints(currentSpaceValue);
+                score += p;
+            }
+        }
+        score *= multiplicativeFactor;
+        //is it a 'bingo'?  (must come after multiplying)
+        if (tilesPlaced == 7) {
+            score += 50;
+        }
+        for (SideWord s : sideWords) {
+            score += s.getPoints();
+        }
+        this.score = score;
+        return this;
+    }
+
+    public Integer scoreMove() {
+        Board b = board.clone();
+        int score = 0;
+        int tilesPlaced = 0;
+        int multiplicativeFactor = 1;
+        for (int i = 0; i < word.length(); i++) {
+            BoardSpace currentSpace = b.getSpace(row, column);
+            try {
+                if (direction == Direction.ACROSS) {
+                    currentSpace = b.getSpace(row, (column + i));
+                } else {
+                    currentSpace = b.getSpace((row + i), column);
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.out.print(this.toString());
+            }
+            Character currentSpaceValue = currentSpace.getValue();
+            Character currentLetter = word.charAt(i);
+            boolean spaceOccupied = currentSpace.isOccupied();
+            if (!spaceOccupied) {
+                BoardSpace.Type type = currentSpace.getType();
+                currentSpace.setValue(currentLetter);
+                tilesPlaced++;
+                int p = TileConfig.getTilePoints(currentLetter);
+                if (type == BoardSpace.Type.TRIPLE_LETTER) {
+                    score += (p * 3);
+                } else if (type == BoardSpace.Type.DOUBLE_LETTER) {
+                    score += (p * 2);
+                } else if (type == BoardSpace.Type.TRIPLE_WORD) {
+                    multiplicativeFactor *= 3;
+                    score += p;
+                } else if (type == BoardSpace.Type.DOUBLE_WORD) {
+                    multiplicativeFactor *= 2;
+                    score += p;
+                } else if (type == BoardSpace.Type.PLAIN) {
+                    score += p;
+                }
+            } else if (spaceOccupied) {
+                int p = TileConfig.getTilePoints(currentSpaceValue);
+                score += p;
+            }
+        }
+        score *= multiplicativeFactor;
+        //is it a 'bingo'?  (must come after multiplying)
+        if (tilesPlaced == 7) {
+            score += 50;
+        }
+        for (SideWord s : sideWords) {
+            score += s.getPoints();
+        }
+        this.score = score;
+        return score;
+    }
+
+    public Board getBoard() {
+        return board;
     }
 
     public String getErrorMessage() {
@@ -48,212 +258,115 @@ public class Move {
         return score;
     }
 
-    private boolean sideWord(String character, int row, int column) {
-        String side_word = character;
-        int points = 0;
+    public String getWord() {
+        return word;
+    }
 
+    private boolean sideWord(Character character, int row, int column) {
+        String sideWord = Character.toString(character);
+        int points = 0;
         // look in the positive direction starting one tile over, if occupied, append to side-word, continue
-        int pos_ind;
+        int posInd;
         if (direction == Direction.ACROSS) {
-            pos_ind = row + 1;
+            posInd = row + 1;
         } else {
-            pos_ind = column + 1;
+            posInd = column + 1;
         }
-        BoardSpace next_space;
-        while (pos_ind < Board.boardSize) {
+        BoardSpace nextSpace;
+        while (posInd < Board.BOARD_SIZE) {
             if (direction == Direction.ACROSS) {
-                next_space = board.getSpace(pos_ind, column);
+                nextSpace = board.getSpace(posInd, column);
             } else {
-                next_space = board.getSpace(row, pos_ind);
+                nextSpace = board.getSpace(row, posInd);
             }
-            if (next_space.isOccupied()) {
-                side_word += next_space.getValue();
-                points += TileConfig.tile_config.get(next_space.getValue()).points;
-                pos_ind++;
+            if (nextSpace.isOccupied()) {
+                sideWord += nextSpace.getValue();
+                points += TileConfig.getTilePoints(nextSpace.getValue());
+                posInd++;
             } else {
                 break;
             }
         }
         // look in the negative direction starting one tile over, if occupied, prepend to side-word, continue
-        int neg_ind;
+        int negInd;
         if (direction == Direction.ACROSS) {
-            neg_ind = row - 1;
+            negInd = row - 1;
         } else {
-            neg_ind = column - 1;
+            negInd = column - 1;
         }
-        while (neg_ind >= 0) {
+        while (negInd >= 0) {
             if (direction == Direction.ACROSS) {
-                next_space = board.getSpace(neg_ind, column);
+                nextSpace = board.getSpace(negInd, column);
             } else {
-                next_space = board.getSpace(row, neg_ind);
+                nextSpace = board.getSpace(row, negInd);
             }
-            if (next_space.isOccupied()) {
-                side_word = next_space.getValue() + side_word;
-                neg_ind--;
-                points += TileConfig.tile_config.get(next_space.getValue()).points;
+            if (nextSpace.isOccupied()) {
+                sideWord = nextSpace.getValue() + sideWord;
+                negInd--;
+                points += TileConfig.getTilePoints(nextSpace.getValue());
             } else {
                 break;
             }
         }
-
-        if (side_word.length() == 1) {
+        if (sideWord.length() == 1) {
             return true;
-        } else if (side_word.length() > 1 && !d.validWord(side_word) ) {
+        } else if (sideWord.length() > 1 && !validateWord(sideWord) ) {
             return false;
-        } else if (side_word.length() > 1 && d.validWord(side_word) ) {
+        } else if (sideWord.length() > 1 && validateWord(sideWord) ) {
             //score the word
             BoardSpace.Type type = board.getSpace(row, column).getType();
-            int multiplicative_factor = 1;
+            int multiplicativeFactor = 1;
             if (type == BoardSpace.Type.TRIPLE_WORD) {
-                multiplicative_factor = 3;
+                multiplicativeFactor = 3;
             } else if (type == BoardSpace.Type.DOUBLE_WORD) {
-                multiplicative_factor = 2;
+                multiplicativeFactor = 2;
             }
-            int placed_tile_score = TileConfig.tile_config.get(character).points;
+            int placedTileScore = TileConfig.getTilePoints(character);
             if (type == BoardSpace.Type.TRIPLE_LETTER) {
-                placed_tile_score *= 3;
+                placedTileScore *= 3;
             } else if (type == BoardSpace.Type.DOUBLE_LETTER) {
-                placed_tile_score *= 2;
+                placedTileScore *= 2;
             }
-            points += placed_tile_score;
-            points *= multiplicative_factor;
-            sideWords.add(new SideWord(side_word, points));
+            points += placedTileScore;
+            points *= multiplicativeFactor;
+            sideWords.add(new SideWord(sideWord, points));
             intersectsExistingWord = true;
             return true;
         }
         return false;
     }
 
-    private List<String> getTileValues(List<Tile> tiles){
+    private List<Character> getTileValues(List<Tile> tiles){
         return tiles.stream()
                 .map(t -> t.getCharacter())
                 .collect(Collectors.toList());
     }
 
-    public boolean checkMove() {
-        //first check that it's a word
-        if (!d.validWord(word)) {
-            errorMessage = "Sorry, '" + word + "' is not a valid word (in our dictionary).";
+    private boolean validateWord(String w){
+        if (!d.containsWord(w)) {
+            errorMessage = INVALID_WORD;
             return false;
         }
-        //if it's the first move make sure it touches the center tile
+        return true;
+    }
+
+    private boolean checkIfFirstMoveThatCenterTileIsTouched(){
         if (board.isEmpty()) {
             if (direction == Direction.ACROSS) {
                 if (!(row == 7 && column <= 7 && column + word.length() >= 7)) {
-                    errorMessage = "Error - the first move must touch the center tile (H,8).";
+                    errorMessage = FIRST_MOVE_CENTER_TILE;
                     return false;
                 }
             } else {
                 if (!(column == 7 && row <= 7 && row + word.length() >= 7)) {
-                    errorMessage = "Error - the first move must touch the center tile (H,8).";
+                    errorMessage = FIRST_MOVE_CENTER_TILE;
                     return false;
                 }
             }
         }
-        //then check that it will work
-        boolean tile_placed = false;
-        List<String> tile_values = getTileValues(tiles);
-        //iterate over the proposed word / board spaces and check at each space/letter that it is possible
-        for (int i = 0; i < word.length(); i++) {
-            int x = row;
-            int y = column;
-            String current_letter = Character.toString(word.charAt(i));
-            if (direction == Direction.ACROSS) {
-                y = column + i;
-            } else {
-                x = row + i;
-            }
-            if (y >= Board.boardSize || x >= Board.boardSize) {
-                errorMessage = "Sorry, '" + word + "' is too big for that spot.";
-                return false;
-            }
-            BoardSpace current_space = board.getSpace(x, y);
-            boolean space_occupied = current_space.isOccupied();
-            String current_space_value = current_space.getValue();
-
-            // there is a letter on the space and it's *not* the right letter of the word we're checking
-            if (space_occupied && !current_letter.equals(current_space_value)) {
-                errorMessage = "there is a letter on the space - " + current_space_value + " and it's *not* the right letter of the word we're checking";
-                return false;
-            }
-
-            // there is a letter on the space and it *is* the right letter of the word we're checking
-            else if (space_occupied && current_letter.equals(current_space_value)) {
-                intersectsExistingWord = true;
-                continue;
-            }
-
-            // the space is empty and player has a tile for the letter
-            else if (!space_occupied && tile_values.contains(current_letter)) {
-                if (sideWord(current_letter, x, y)) {
-                    tile_values.remove(current_letter);
-                    tile_placed = true;
-                } else {
-                    errorMessage = "the space is empty and player has a tile for the letter: " + current_letter;
-                    return false;
-                }
-            }
-
-            // the space is empty and player doesn't have a tile for the letter
-            else if (!space_occupied && !tile_values.contains(current_letter)) {
-                return false;
-            }
-        }
-        return (tile_placed && ((board.isEmpty()) || intersectsExistingWord));
+        return true;
     }
 
-    public Board makeMove() {
-        int score = 0;
-        int tiles_placed = 0;
-        int multiplicative_factor = 1;
-        for (int i = 0; i < word.length(); i++) {
-            BoardSpace current_space = board.getSpace(row, column);
-            try {
-            if (direction == Direction.ACROSS) {
-                current_space = board.getSpace(row, (column + i));
-            } else {
-                current_space = board.getSpace((row + i), column);
-            }
-            } catch (IndexOutOfBoundsException e) {
-                System.out.print(this.toString());
-            }
-            String current_space_value = current_space.getValue();
-            String current_letter = Character.toString(word.charAt(i));
-            boolean space_occupied = current_space.isOccupied();
-            if (!space_occupied) {
-                BoardSpace.Type type = current_space.getType();
-                current_space.setValue(current_letter);
-                tiles_placed++;
-                int p = TileConfig.tile_config.get(current_letter).points;
-                if (type == BoardSpace.Type.TRIPLE_LETTER) {
-                    score += (p * 3);
-                } else if (type == BoardSpace.Type.DOUBLE_LETTER) {
-                    score += (p * 2);
-                } else if (type == BoardSpace.Type.TRIPLE_WORD) {
-                    multiplicative_factor *= 3;
-                    score += p;
-                } else if (type == BoardSpace.Type.DOUBLE_WORD) {
-                    multiplicative_factor *= 2;
-                    score += p;
-                } else if (type == BoardSpace.Type.PLAIN) {
-                    score += p;
-                }
-            } else if (space_occupied) {
-                int p = TileConfig.tile_config.get(current_space_value).points;
-                score += p;
-            }
-        }
-        score *= multiplicative_factor;
-        //is it a 'bingo'?  (must come after multiplying)
-        if (tiles_placed == 7) {
-            score += 50;
-        }
-        for (SideWord s : sideWords) {
-            score += s.getPoints();
-        }
-        this.score = score;
-        return board;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -286,17 +399,15 @@ public class Move {
     @Override
     public String toString() {
         return "Move{" +
-                "sideWords=" + sideWords +
-                ", score=" + score +
+                " score=" + score +
                 ", row=" + row +
                 ", column=" + column +
                 ", direction=" + direction +
                 ", word='" + word + '\'' +
-                ", errorMessage='" + errorMessage + '\'' +
-                ", board=" + board +
-                ", intersectsExistingWord=" + intersectsExistingWord +
-                ", d=" + d +
-                ", tiles=" + tiles +
+                //", errorMessage='" + errorMessage + '\'' +
+                //", intersectsExistingWord=" + intersectsExistingWord +
+                //", tiles=" + tiles +
                 '}';
     }
+
 }

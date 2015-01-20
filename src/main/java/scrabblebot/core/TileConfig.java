@@ -13,40 +13,40 @@ public class TileConfig {
         }
     }
 
-    public static final HashMap<String, Tuple> tile_config = new HashMap<String, Tuple>();
+    public static final HashMap<Character, Tuple> tileConfig = new HashMap<>();
 
     public TileConfig() {
         // using Tuple format to store the number of tiles and point value
-        tile_config.put("E", new Tuple(12, 1));
-        tile_config.put("A",  new Tuple(9, 1));
-        tile_config.put("I",  new Tuple(9, 1));
-        tile_config.put("O",  new Tuple(8, 1));
-        tile_config.put("N",  new Tuple(6, 1));
-        tile_config.put("R",  new Tuple(6, 1));
-        tile_config.put("T",  new Tuple(6, 1));
-        tile_config.put("L",  new Tuple(4, 1));
-        tile_config.put("S",  new Tuple(4, 1));
-        tile_config.put("U",  new Tuple(4, 1));
-        tile_config.put("D",  new Tuple(4, 2));
-        tile_config.put("G",  new Tuple(3, 2));
-        tile_config.put("B",  new Tuple(2, 3));
-        tile_config.put("C",  new Tuple(2, 3));
-        tile_config.put("M",  new Tuple(2, 3));
-        tile_config.put("P",  new Tuple(2, 3));
-        tile_config.put("F",  new Tuple(2, 4));
-        tile_config.put("H",  new Tuple(2, 4));
-        tile_config.put("V",  new Tuple(2, 4));
-        tile_config.put("W",  new Tuple(2, 4));
-        tile_config.put("Y",  new Tuple(2, 4));
-        tile_config.put("K",  new Tuple(1, 5));
-        tile_config.put("J",  new Tuple(1, 8));
-        tile_config.put("X",  new Tuple(1, 8));
-        tile_config.put("Q",  new Tuple(1, 10));
-        tile_config.put("Z",  new Tuple(1, 10));
+        tileConfig.put('E', new Tuple(12, 1));
+        tileConfig.put('A',  new Tuple(9, 1));
+        tileConfig.put('I',  new Tuple(9, 1));
+        tileConfig.put('O',  new Tuple(8, 1));
+        tileConfig.put('N',  new Tuple(6, 1));
+        tileConfig.put('R',  new Tuple(6, 1));
+        tileConfig.put('T',  new Tuple(6, 1));
+        tileConfig.put('L',  new Tuple(4, 1));
+        tileConfig.put('S',  new Tuple(4, 1));
+        tileConfig.put('U',  new Tuple(4, 1));
+        tileConfig.put('D',  new Tuple(4, 2));
+        tileConfig.put('G',  new Tuple(3, 2));
+        tileConfig.put('B',  new Tuple(2, 3));
+        tileConfig.put('C',  new Tuple(2, 3));
+        tileConfig.put('M',  new Tuple(2, 3));
+        tileConfig.put('P',  new Tuple(2, 3));
+        tileConfig.put('F',  new Tuple(2, 4));
+        tileConfig.put('H',  new Tuple(2, 4));
+        tileConfig.put('V',  new Tuple(2, 4));
+        tileConfig.put('W',  new Tuple(2, 4));
+        tileConfig.put('Y',  new Tuple(2, 4));
+        tileConfig.put('K',  new Tuple(1, 5));
+        tileConfig.put('J',  new Tuple(1, 8));
+        tileConfig.put('X',  new Tuple(1, 8));
+        tileConfig.put('Q',  new Tuple(1, 10));
+        tileConfig.put('Z',  new Tuple(1, 10));
     }
 
-    public int getTilePoints(String s){
-        return tile_config.get(s).points;
+    public static int getTilePoints(Character s){
+        return tileConfig.get(s).points;
     }
 
 }

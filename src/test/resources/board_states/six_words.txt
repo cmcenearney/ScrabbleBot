@@ -18,3 +18,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ e
 Six words on the board
  - the bot should be able to find the move NAP,10,11,DOWN
 */
+HAMSTER
+_ _ _ M _ _ E _ _ _ _ _ _ _ _
+
+7 6 5
