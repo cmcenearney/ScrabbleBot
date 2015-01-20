@@ -2,6 +2,7 @@ package scrabblebot.bot;
 
 import scrabblebot.core.*;
 import scrabblebot.data.RealList;
+import scrabblebot.data.Trie;
 import scrabblebot.data.TrieNode;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class RowBot {
 
-    ScrabbleTrie trie = ScrabbleTrie.INSTANCE;
+    Trie trie = ScrabbleTrie.INSTANCE.getTrie();
 
 //    final Board b;
 //    final RealList<Tile> tiles;
@@ -107,7 +108,7 @@ public class RowBot {
     List<Move> getAllRowMoves(Board b, List<Tile> tiles){
         RealList<Character> tilesFinal = tilesToChars(tiles);
         List<Move> results = new ArrayList<>();
-        for (int i = 0; i < Board.boardSize; i++){
+        for (int i = 0; i < Board.BOARD_SIZE; i++){
             final int j = i;
             RealList<Optional<Character>> row = boardRowToRowBotRow(b.getRow(j));
             Set<RowBotMove> moves = getAllMovesForRow(row, tilesFinal);
@@ -121,7 +122,7 @@ public class RowBot {
     List<Move> getAllColumnMoves(Board b, List<Tile> tiles){
         RealList<Character> tilesFinal = tilesToChars(tiles);
         List<Move> results = new ArrayList<>();
-        for (int i = 0; i < Board.boardSize; i++){
+        for (int i = 0; i < Board.BOARD_SIZE; i++){
             final int j = i;
             RealList<Optional<Character>> row = boardRowToRowBotRow(b.getColumn(j));
             Set<RowBotMove> moves = getAllMovesForRow(row, tilesFinal);
@@ -146,14 +147,14 @@ public class RowBot {
                        Integer start, Integer i,  TrieNode node, String partial, boolean tileTouched){
         if (node.isWord() && tileTouched && (i == row.size()-1 || !row.get(i).isPresent()))
             moves.add(new RowBotMove(start, partial));
-        if (tiles.isEmpty() || i == Board.boardSize-1)
+        if (tiles.isEmpty() || i == Board.BOARD_SIZE-1)
             return;
         if (row.get(i).isPresent()){
             tileTouched = true;
             Character c = row.get(i).get();
             partial += c;
             i++;
-            if (node.containsChildValue(c)){
+            if (node.hasChild(c)){
                 node = node.getChild(c);
             } else {
                 return;
@@ -161,7 +162,7 @@ public class RowBot {
         }
         for(int j = 0; j < tiles.size();j++){
             Character c = tiles.get(j);
-            if (node.containsChildValue(c)){
+            if (node.hasChild(c)){
                 //ImmutableList<Character> t = tiles.subList(j,tiles.size());
                 String p = partial + c;
                 RealList<Character> t = tiles.remove(j);
@@ -177,6 +178,7 @@ public class RowBot {
                 .collect(Collectors.toList());
         return new RealList<>(c);
     }
+
 
     class RowBotMove {
         int start;

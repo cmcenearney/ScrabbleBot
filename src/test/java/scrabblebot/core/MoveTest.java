@@ -52,6 +52,14 @@ public class MoveTest extends TestHelper {
     }
 
     @Test
+    public void testMovesThatAdjoinExistingCharsAreChecked(){
+        List<Tile> tiles = tilesFromString("SLOPKLM") ;
+        Move m = new Move(fourWords,5,6, Direction.ACROSS, "SLOP", tiles);
+        assertFalse(m.checkMove());
+        assert(m.getErrorMessage().equals(Move.BEGINNING_OR_END_OF_WORD_PROBLEM));
+    }
+
+    @Test
     public void testSideWordsBasic(){
         List<Tile> tiles = tilesFromString("AHEMBCD");
         Move m = new Move(twoWords, 6,8,Direction.ACROSS, "MODE", tiles);
@@ -97,5 +105,32 @@ public class MoveTest extends TestHelper {
         assert(m.checkMove());
         m.makeMove();
         assert(20 == m.getScore());
+    }
+
+    //ve{ score=29, row=8, column=10, direction=DOWN, word='DAWTIE'}
+    @Test
+    public void testObliqueWordScoring() {
+        List<Tile> tiles = tilesFromString("TPIDEAW");
+        Move m = new Move(twoWords,8,10,Direction.DOWN, "DAWTIE", tiles);
+        assert(m.checkMove());
+        m.makeMove();
+        assert(39 == m.getScore());
+    }
+
+    @Test
+    public void testObliqueWordScoring2() {
+        List<Tile> tiles = tilesFromString("HJKLMOP");
+        Move m = new Move(twoWords, 5, 8, Direction.DOWN, "OKEH", tiles);
+        m.checkMove();
+        m.makeMove();
+        assert(44 == m.getScore());
+    }
+
+    @Test
+    public void testObliqueWordScoring3() {
+        List<Tile> tiles = tilesFromString("AADJKRU");
+        Move m = new Move(threeWords, 8, 8, Direction.DOWN, "JAK", tiles);
+        assertFalse(m.checkMove());;
+        assert(m.getErrorMessage().equals(Move.BEGINNING_OR_END_OF_WORD_PROBLEM));
     }
 }

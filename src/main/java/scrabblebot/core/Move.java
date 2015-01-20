@@ -1,5 +1,8 @@
 package scrabblebot.core;
 
+import scrabblebot.bot.ScrabbleTrie;
+import scrabblebot.data.Trie;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,31 +27,69 @@ public class Move {
     private final int column;
     private final Direction direction;
     private final String word;
-    private String errorMessage = "error";
+    private String errorMessage = DEFAULT_ERR_MSG;
     protected final Board board;
     boolean intersectsExistingWord = false;
-    Dictionary d = Dictionary.INSTANCE;
+    Trie d = ScrabbleTrie.INSTANCE.getTrie();
     private List<Tile> tiles;
 
-
+    static final String DEFAULT_ERR_MSG = "error";
+    static final String BEGINNING_OR_END_OF_WORD_PROBLEM = "there is a problem with the beginning or end of this word";
+    static final String WORD_TOO_LARGE = "word is too big for that spot.";
+    static final String CONFLICT_WITH_PLACED_TILE = "there is a conflict with an already placed tile";
+    static final String INVALID_WORD = "word is not valid in our lexicon";
+    static final String FIRST_MOVE_CENTER_TILE = "Error - the first move must touch the center tile (H,8).";
+    static final String FAILED_SIDEWORD_CHECK = "failed side word check at";
 
     public Move(Board board, int row, int column, Direction direction, String word, List<Tile> tiles) {
         this.row = row;
         this.column = column;
         this.word = word;
         this.direction = direction;
-        this.board = board;
+        this.board = board.clone();
         this.tiles = tiles;
     }
 
 
+    public Move process(){
+        checkMove();
+        return makeMove();
+    }
+
+
+    private boolean validateBeginningAndEnd(){
+        if(validateBeginning() && validateEnd()){
+            return true;
+        } else {
+            errorMessage = BEGINNING_OR_END_OF_WORD_PROBLEM;
+            return false;
+        }
+    }
+
+    private boolean validateBeginning(){
+        if(direction == Direction.ACROSS){
+            return (column == 0 || !board.getSpace(row, column-1).isOccupied());
+        } else {
+            return (row == 0 || !board.getSpace(row-1, column).isOccupied());
+        }
+    }
+
+    private boolean validateEnd(){
+        if(direction == Direction.ACROSS){
+            return (column == Board.BOARD_SIZE - 1 || !board.getSpace(row, column+1).isOccupied());
+        } else {
+            return (row == Board.BOARD_SIZE - 1 || !board.getSpace(row+1, column).isOccupied());
+        }
+    }
 
     public boolean checkMove() {
         //first check that it's a word
-        if (!validateWord())
+        if (!validateWord(word))
             return false;
         //if it's the first move make sure it touches the center tile
         if (!checkIfFirstMoveThatCenterTileIsTouched())
+            return false;
+        if (!validateBeginningAndEnd())
             return false;
         //then check that it will work
         boolean tilePlaced = false;
@@ -63,8 +104,8 @@ public class Move {
             } else {
                 x = row + i;
             }
-            if (y >= Board.boardSize || x >= Board.boardSize) {
-                errorMessage = "Sorry, '" + word + "' is too big for that spot.";
+            if (y >= Board.BOARD_SIZE || x >= Board.BOARD_SIZE) {
+                errorMessage = WORD_TOO_LARGE;
                 return false;
             }
             BoardSpace currentSpace = board.getSpace(x, y);
@@ -72,7 +113,7 @@ public class Move {
             Character currentSpaceValue = currentSpace.getValue();
             // there is a letter on the space and it's *not* the right letter of the word we're checking
             if (spaceOccupied && !currentLetter.equals(currentSpaceValue)) {
-                errorMessage = "there is a letter on the space - " + currentSpaceValue + " and it's *not* the right letter of the word we're checking";
+                errorMessage = CONFLICT_WITH_PLACED_TILE;
                 return false;
             }
             // there is a letter on the space and it *is* the right letter of the word we're checking
@@ -86,7 +127,7 @@ public class Move {
                     tileValues.remove(currentLetter);
                     tilePlaced = true;
                 } else {
-                    errorMessage = "the space is empty and player has a tile for the letter: " + currentLetter;
+                    errorMessage = FAILED_SIDEWORD_CHECK;
                     return false;
                 }
             }
@@ -98,7 +139,7 @@ public class Move {
         return (tilePlaced && ((board.isEmpty()) || intersectsExistingWord));
     }
 
-    public Board makeMove() {
+    public Move makeMove() {
         int score = 0;
         int tilesPlaced = 0;
         int multiplicativeFactor = 1;
@@ -148,7 +189,7 @@ public class Move {
             score += s.getPoints();
         }
         this.score = score;
-        return board;
+        return this;
     }
 
     public Integer scoreMove() {
@@ -205,8 +246,6 @@ public class Move {
         return score;
     }
 
-
-
     public Board getBoard() {
         return board;
     }
@@ -223,8 +262,6 @@ public class Move {
         return word;
     }
 
-
-
     private boolean sideWord(Character character, int row, int column) {
         String sideWord = Character.toString(character);
         int points = 0;
@@ -236,7 +273,7 @@ public class Move {
             posInd = column + 1;
         }
         BoardSpace nextSpace;
-        while (posInd < Board.boardSize) {
+        while (posInd < Board.BOARD_SIZE) {
             if (direction == Direction.ACROSS) {
                 nextSpace = board.getSpace(posInd, column);
             } else {
@@ -273,9 +310,9 @@ public class Move {
         }
         if (sideWord.length() == 1) {
             return true;
-        } else if (sideWord.length() > 1 && !d.validWord(sideWord) ) {
+        } else if (sideWord.length() > 1 && !validateWord(sideWord) ) {
             return false;
-        } else if (sideWord.length() > 1 && d.validWord(sideWord) ) {
+        } else if (sideWord.length() > 1 && validateWord(sideWord) ) {
             //score the word
             BoardSpace.Type type = board.getSpace(row, column).getType();
             int multiplicativeFactor = 1;
@@ -305,9 +342,9 @@ public class Move {
                 .collect(Collectors.toList());
     }
 
-    private boolean validateWord(){
-        if (!d.validWord(word)) {
-            errorMessage = "Sorry, '" + word + "' is not a valid word (in our dictionary).";
+    private boolean validateWord(String w){
+        if (!d.containsWord(w)) {
+            errorMessage = INVALID_WORD;
             return false;
         }
         return true;
@@ -317,19 +354,18 @@ public class Move {
         if (board.isEmpty()) {
             if (direction == Direction.ACROSS) {
                 if (!(row == 7 && column <= 7 && column + word.length() >= 7)) {
-                    errorMessage = "Error - the first move must touch the center tile (H,8).";
+                    errorMessage = FIRST_MOVE_CENTER_TILE;
                     return false;
                 }
             } else {
                 if (!(column == 7 && row <= 7 && row + word.length() >= 7)) {
-                    errorMessage = "Error - the first move must touch the center tile (H,8).";
+                    errorMessage = FIRST_MOVE_CENTER_TILE;
                     return false;
                 }
             }
         }
         return true;
     }
-
 
 
     @Override

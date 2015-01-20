@@ -12,7 +12,7 @@ public class BoardConfig {
     public static String triple_letter = " ≡ ";
     public static String triple_word = "[≡]";
 
-    public List<ArrayList<BoardSpace.Type>> scrabble_style = new ArrayList<>(15);
+    public List<ArrayList<BoardSpace.Type>> scrabbleStyle = new ArrayList<>(15);
 
     public BoardConfig() {
 
@@ -32,21 +32,21 @@ public class BoardConfig {
         BoardSpace.Type[] row14 = { BoardSpace.Type.PLAIN,  BoardSpace.Type.DOUBLE_WORD,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.TRIPLE_LETTER,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.TRIPLE_LETTER,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.DOUBLE_WORD,  BoardSpace.Type.PLAIN };
         BoardSpace.Type[] row15 = { BoardSpace.Type.TRIPLE_WORD,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.DOUBLE_LETTER,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.TRIPLE_WORD,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.DOUBLE_LETTER,  BoardSpace.Type.PLAIN,  BoardSpace.Type.PLAIN,  BoardSpace.Type.TRIPLE_WORD};
 
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row1)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row2)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row3)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row4)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row5)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row6)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row7)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row8)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row9)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row10)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row11)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row12)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row13)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row14)));
-        scrabble_style.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row15)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row1)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row2)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row3)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row4)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row5)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row6)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row7)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row8)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row9)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row10)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row11)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row12)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row13)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row14)));
+        scrabbleStyle.add(new ArrayList<BoardSpace.Type>(Arrays.asList(row15)));
 
 
     }

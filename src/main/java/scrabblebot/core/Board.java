@@ -2,20 +2,21 @@ package scrabblebot.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Board {
 
-    public static final int boardSize = 15;
-    private List<ArrayList<BoardSpace>> spaces = new ArrayList<ArrayList<BoardSpace>>(boardSize);
+    public static final int BOARD_SIZE = 15;
+    private List<ArrayList<BoardSpace>> spaces = new ArrayList<ArrayList<BoardSpace>>(BOARD_SIZE);
 
     public Board(){
         BoardConfig config = new BoardConfig();
-        for (int row = 0; row < boardSize; row++){
+        for (int row = 0; row < BOARD_SIZE; row++){
             spaces.add(row, new ArrayList<BoardSpace>(15));
-            for (int col = 0; col < boardSize; col++){
-                BoardSpace.Type type = config.scrabble_style.get(row).get(col);
-                BoardSpace new_space = new BoardSpace(type);
-                spaces.get(row).add(col, new_space);
+            for (int col = 0; col < BOARD_SIZE; col++){
+                BoardSpace.Type type = config.scrabbleStyle.get(row).get(col);
+                BoardSpace newSpace = new BoardSpace(type, row, col);
+                spaces.get(row).add(col, newSpace);
             }
         }
     }
@@ -38,7 +39,7 @@ public class Board {
 
     public ArrayList<BoardSpace> getColumn(int col){
         ArrayList<BoardSpace> column = new ArrayList<BoardSpace>(15);
-        for (int row=0; row < boardSize; row++) {
+        for (int row=0; row < BOARD_SIZE; row++) {
             BoardSpace space = this.getSpace(row,col);
             column.add(row, space);
         }
@@ -50,11 +51,66 @@ public class Board {
                 .flatMap(row -> row.stream())
                 .allMatch(s -> !s.isOccupied());
     }
+    
+    public List<BoardSpace> getNeighbors(BoardSpace sp){
+        List<BoardSpace> n = new ArrayList<>();
+        int row = sp.row;
+        int col = sp.col;
+        if (col > 0 && col < (BOARD_SIZE-1)) {
+            n.add(getSpace(row, col-1));
+            n.add(getSpace(row, col+1));
+        } else if (col == 0){
+            n.add(getSpace(row, col+1));
+        } else if (col == BOARD_SIZE-1){
+            n.add(getSpace(row, col -1));
+        }
+        if (row > 0 && row < (BOARD_SIZE-1)) {
+            n.add(getSpace(row-1, col));
+            n.add(getSpace(row+1, col));
+        } else if (row == 0){
+            n.add(getSpace(row+1, col));
+        } else if (row == BOARD_SIZE-1){
+            n.add(getSpace(row-1, col));
+        }
+        return n;
+    }
+
+    public Optional<BoardSpace> getLeftNeighbor(BoardSpace sp){
+        if (sp.getCol() > 0) {
+            return Optional.of(getSpace(sp.getRow(), sp.getCol() - 1));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<BoardSpace> getRightNeighbor(BoardSpace sp){
+        if (sp.getCol() < BOARD_SIZE-1) {
+            return Optional.of(getSpace(sp.getRow(), sp.getCol() + 1));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<BoardSpace> getUpperNeighbor(BoardSpace sp){
+        if (sp.getRow() > 0) {
+            return Optional.of(getSpace(sp.getRow()-1, sp.getCol()));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<BoardSpace> getLowerNeighbor(BoardSpace sp){
+        if (sp.getRow() < BOARD_SIZE-1) {
+            return Optional.of(getSpace(sp.getRow()+1, sp.getCol()));
+        } else {
+            return Optional.empty();
+        }
+    }
 
     public Board clone(){
         Board newB = new Board();
-        for (int row = 0; row < boardSize; row++){
-            for (int col = 0; col < boardSize; col++){
+        for (int row = 0; row < BOARD_SIZE; row++){
+            for (int col = 0; col < BOARD_SIZE; col++){
                 BoardSpace parent = spaces.get(row).get(col);
                 BoardSpace newSpace = newB.getSpaces().get(row).get(col);
                 newSpace.setValue(parent.getValue());
@@ -80,5 +136,22 @@ public class Board {
         return "Board {\n" +
                 out +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Board board = (Board) o;
+
+        if (spaces != null ? !spaces.equals(board.spaces) : board.spaces != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return spaces != null ? spaces.hashCode() : 0;
     }
 }

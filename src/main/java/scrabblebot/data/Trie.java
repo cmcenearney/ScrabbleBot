@@ -5,34 +5,29 @@ import java.util.List;
 
 public class Trie {
 
-    private TrieNode root = new TrieNode("");
-
-    public Trie() {}
-
-    public Trie(List<String> words){
-        for (String word : words){
-            addWord(word);
-        }
-    }
+    TrieNode root = new TrieNode();
 
     public void addWord(String word){
         TrieNode currentNode = root;
-        char chars[] = word.toCharArray();
-        for (int i = 0; i < chars.length; i++){
-            if (!currentNode.containsChildValue(chars[i])){
-                currentNode.addChild(chars[i], new TrieNode(currentNode.getValue() + chars[i]));
+        List<Character> chars =  convertStringToChars(word);
+        for (int i = 0; i < chars.size(); i++){
+            Character c = chars.get(i);
+            if (!currentNode.hasChild(c)){
+                currentNode = currentNode.addChild(c);
+            } else {
+                currentNode = currentNode.getChild(c);
             }
-            currentNode = currentNode.getChild(chars[i]);
         }
         currentNode.setIsWord(true);
     }
 
     public TrieNode getNode(String word){
         TrieNode currentNode = root;
-        char chars[] = word.toCharArray();
-        for (int i = 0; i < chars.length; i++){
-            if (currentNode.containsChildValue(chars[i])){
-                currentNode = currentNode.getChild(chars[i]);
+        List<Character> chars =  convertStringToChars(word);
+        for (int i = 0; i < chars.size(); i++){
+            Character c = chars.get(i);
+            if (currentNode.hasChild(c)){
+                currentNode = currentNode.getChild(c);
             }
             else {
                 return null;
@@ -53,22 +48,13 @@ public class Trie {
         return (getNode(word) != null && getNode(word).isWord());
     }
 
-    public ArrayList<String> listWords(){
-        ArrayList<String> words = new ArrayList<String>();
-        return listWords(root, words);
+
+    private List<Character> convertStringToChars(String s){
+        List<Character> chars = new ArrayList<>();
+        for(char c : s.toCharArray())
+            chars.add(c);
+        return chars;
     }
 
-    public ArrayList<String> listWords(TrieNode node, ArrayList<String> words){
-        TrieNode currentNode = node;
-        if (currentNode.isWord()) {
-            words.add(currentNode.getValue());
-        }
-        if (currentNode.hasChildren()){
-            for (TrieNode n : currentNode.getChildren() ) {
-                listWords(n, words);
-            }
-        }
-        return words;
-    }
 
 }

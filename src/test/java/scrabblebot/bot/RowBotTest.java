@@ -5,6 +5,7 @@ import scrabblebot.TestHelper;
 import scrabblebot.core.Move;
 import scrabblebot.core.Tile;
 import scrabblebot.data.RealList;
+import scrabblebot.data.Trie;
 import scrabblebot.data.TrieNode;
 
 import java.util.*;
@@ -14,9 +15,8 @@ import static org.junit.Assert.assertEquals;
 
 public class RowBotTest extends TestHelper {
 
-    ScrabbleTrie trie = ScrabbleTrie.INSTANCE;
+    Trie trie = ScrabbleTrie.INSTANCE.getTrie();
 
-    @Test
     public void testStartableIndicesEmpty(){
         RowBot rb = new RowBot();
         assert(rb.startableIndices("_ _ _ _ _ _ _ _ _ _ _ _ _ _ _").isEmpty());
