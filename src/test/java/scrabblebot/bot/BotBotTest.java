@@ -124,4 +124,44 @@ public class BotBotTest extends TestHelper {
         assertEquals(expected, actual);
     }
 
+    //fourWords + ABDFIOR
+    @Test
+    public void testFourWordsBoard_ABDFIOR() {
+        List<Tile> tiles = tilesFromString("BBDFIOR");
+        BotBot bot = new BotBot(fourWords, tiles);
+        Move expected = new Move(fourWords, 9, 14, Direction.DOWN, "FORBID", tiles).process();
+        Move actual = bot.getHighestScoringMove();
+        assertEquals(expected, actual);
+    }
+
+    //fiveWords + AFILNRE
+    @Test
+    public void testFiveWordsBoard_AFILNRE() {
+        List<Tile> tiles = tilesFromString("AFILNRE");
+        BotBot bot = new BotBot(fiveWords, tiles);
+        Move expected = new Move(fiveWords, 5, 0, Direction.ACROSS, "INFLAMER", tiles).process();
+        Move actual = bot.getHighestScoringMove();
+        assertEquals(expected, actual);
+    }
+
+    //AEGHIRT + fiveWords
+    @Test
+    public void testFiveWordsBoard_AEGHIRT() {
+        List<Tile> tiles = tilesFromString("AEGHIRT");
+        BotBot bot = new BotBot(fiveWords, tiles);
+        Move expected = new Move(fiveWords, 5, 12, Direction.DOWN, "HERITAGE", tiles).process();
+        Move actual = bot.getHighestScoringMove();
+        assertEquals(expected, actual);
+    }
+
+    //EEIJNRV + sixWords
+    @Test
+    public void testSixWordsBoard_EEIJNRV() {
+        List<Tile> tiles = tilesFromString("EEIJNRE");
+        BotBot bot = new BotBot(fiveWords, tiles);
+        Move expected = new Move(fiveWords, 9, 13, Direction.DOWN, "JEERER", tiles).process();
+        Move actual = bot.getHighestScoringMove();
+        assertEquals(expected, actual);
+    }
+
 }
